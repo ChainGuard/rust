@@ -160,6 +160,8 @@ pub struct PerfStats {
     pub symbol_hash_time: Cell<Duration>,
     /// The accumulated time spent decoding def path tables from metadata
     pub decode_def_path_tables_time: Cell<Duration>,
+    /// Total number of values canonicalized queries constructed.
+    pub queries_canonicalized: Cell<usize>,
 }
 
 /// Enum to support dispatch of one-time diagnostics (in Session.diag_once)
@@ -764,6 +766,8 @@ impl Session {
                  duration_to_secs_str(self.perf_stats.symbol_hash_time.get()));
         println!("Total time spent decoding DefPath tables:      {}",
                  duration_to_secs_str(self.perf_stats.decode_def_path_tables_time.get()));
+        println!("Total queries canonicalized:                   {}",
+                 self.perf_stats.queries_canonicalized.get());
     }
 
     /// We want to know if we're allowed to do an optimization for crate foo from -z fuel=foo=n.
@@ -1026,6 +1030,7 @@ pub fn build_session_(sopts: config::Options,
             incr_comp_bytes_hashed: Cell::new(0),
             symbol_hash_time: Cell::new(Duration::from_secs(0)),
             decode_def_path_tables_time: Cell::new(Duration::from_secs(0)),
+            queries_canonicalized: Cell::new(0),
         },
         code_stats: RefCell::new(CodeStats::new()),
         optimization_fuel_crate,
