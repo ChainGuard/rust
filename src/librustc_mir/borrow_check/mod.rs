@@ -750,7 +750,7 @@ impl<'cx, 'gcx, 'tcx> MirBorrowckCtxt<'cx, 'gcx, 'tcx> {
                 for (index, field) in def.all_fields().enumerate() {
                     let gcx = self.tcx.global_tcx();
                     let field_ty = field.ty(gcx, substs);
-                    let field_ty = gcx.normalize_associated_type_in_env(&field_ty, self.param_env);
+                    let field_ty = gcx.normalize_erasing_regions(self.param_env, field_ty);
                     let place = drop_place.clone().field(Field::new(index), field_ty);
 
                     self.visit_terminator_drop(
