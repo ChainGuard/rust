@@ -33,11 +33,13 @@ CloneTypeFoldableImpls! {
     bool,
     usize,
     u64,
+    ::middle::region::Scope,
     ::syntax::ast::FloatTy,
     ::syntax::ast::NodeId,
     ::syntax_pos::symbol::Symbol,
     ::hir::def::Def,
     ::hir::def_id::DefId,
+    ::hir::InlineAsm,
     ::hir::MatchSource,
     ::hir::Mutability,
     ::hir::Unsafety,
@@ -545,6 +547,17 @@ impl<'a, 'tcx> Lift<'tcx> for ty::layout::LayoutError<'a> {
 // override the behavior, but there are a lot of random types and one
 // can easily refactor the folding into the TypeFolder trait as
 // needed.
+
+/// AdtDefs are basically the same as a DefId.
+impl<'tcx> TypeFoldable<'tcx> for &'tcx ty::AdtDef {
+    fn super_fold_with<'gcx: 'tcx, F: TypeFolder<'gcx, 'tcx>>(&self, _folder: &mut F) -> Self {
+        *self
+    }
+
+    fn super_visit_with<V: TypeVisitor<'tcx>>(&self, _visitor: &mut V) -> bool {
+        false
+    }
+}
 
 impl<'tcx, T:TypeFoldable<'tcx>, U:TypeFoldable<'tcx>> TypeFoldable<'tcx> for (T, U) {
     fn super_fold_with<'gcx: 'tcx, F: TypeFolder<'gcx, 'tcx>>(&self, folder: &mut F) -> (T, U) {
