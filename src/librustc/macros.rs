@@ -147,22 +147,22 @@ macro_rules! impl_stable_hash_for_spanned {
 /// Used for types that are `Copy` and which **do not care arena
 /// allocated data** (i.e., don't need to be folded).
 #[macro_export]
-macro_rules! CopyTypeFoldableImpls {
+macro_rules! CloneTypeFoldableImpls {
     ($($ty:ty,)+) => {
         $(
-            impl<'tcx> Lift<'tcx> for $ty {
+            impl<'tcx> $crate::ty::Lift<'tcx> for $ty {
                 type Lifted = Self;
-                fn lift_to_tcx<'a, 'gcx>(&self, _: TyCtxt<'a, 'gcx, 'tcx>) -> Option<Self> {
-                    Some(*self)
+                fn lift_to_tcx<'a, 'gcx>(&self, _: $crate::ty::TyCtxt<'a, 'gcx, 'tcx>) -> Option<Self> {
+                    Some(Clone::clone(self))
                 }
             }
 
-            impl<'tcx> TypeFoldable<'tcx> for $ty {
+            impl<'tcx> $crate::ty::fold::TypeFoldable<'tcx> for $ty {
                 fn super_fold_with<'gcx: 'tcx, F: $crate::ty::fold::TypeFolder<'gcx, 'tcx>>(
                     &self,
                     _: &mut F
                 ) -> $ty {
-                    *self
+                    Clone::clone(self)
                 }
 
                 fn super_visit_with<F: $crate::ty::fold::TypeVisitor<'tcx>>(
