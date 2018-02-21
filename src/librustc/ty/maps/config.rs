@@ -52,7 +52,10 @@ impl<'tcx, M: QueryConfig<Key=DefId>> QueryDescription<'tcx> for M {
 }
 
 impl<'tcx> QueryDescription<'tcx> for queries::normalize_projection_ty<'tcx> {
-    fn describe(_tcx: TyCtxt, goal: &'tcx Canonical<ParamEnvAnd<'tcx, ty::ProjectionTy<'tcx>>>) -> String {
+    fn describe(
+        _tcx: TyCtxt,
+        goal: &'tcx Canonical<ParamEnvAnd<'tcx, ty::ProjectionTy<'tcx>>>,
+    ) -> String {
         format!("normalizing `{:?}`", goal)
     }
 }
