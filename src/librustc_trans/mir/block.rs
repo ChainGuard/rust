@@ -455,7 +455,10 @@ impl<'a, 'tcx> FunctionCx<'a, 'tcx> {
                 };
                 let def = instance.map(|i| i.def);
                 let sig = callee.layout.ty.fn_sig(bx.tcx());
-                let sig = bx.tcx().normalize_erasing_late_bound_regions(ty::ParamEnv::reveal_all(), &sig);
+                let sig = bx.tcx().normalize_erasing_late_bound_regions(
+                    ty::ParamEnv::reveal_all(),
+                    &sig,
+                );
                 let abi = sig.abi;
 
                 // Handle intrinsics old trans wants Expr's for, ourselves.
