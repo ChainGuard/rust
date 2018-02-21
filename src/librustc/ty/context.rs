@@ -903,8 +903,10 @@ pub struct GlobalCtxt<'tcx> {
     /// HashSet used to canonicalize interned canonical projection
     /// goals. Each new unique instance is allocated in an arena for
     /// use as a query key.
-    canonical_projection_goal_set: RefCell<FxHashSet<Interned<'tcx, CanonicalProjectionGoal<'tcx>>>>,
+    canonical_projection_goal_set: RefCell<FxHashSet<InternedCanonicalProjectionGoal<'tcx>>>,
 }
+
+type InternedCanonicalProjectionGoal<'tcx> = Interned<'tcx, CanonicalProjectionGoal<'tcx>>;
 
 /// Everything needed to efficiently work with interned allocations
 #[derive(Debug, Default)]
