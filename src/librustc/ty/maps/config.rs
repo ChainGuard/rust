@@ -63,6 +63,12 @@ impl<'tcx> QueryDescription<'tcx> for queries::dropck_outlives<'tcx> {
     }
 }
 
+impl<'tcx> QueryDescription<'tcx> for queries::normalize_ty_after_erasing_regions<'tcx> {
+    fn describe(_tcx: TyCtxt, goal: ParamEnvAnd<'tcx, Ty<'tcx>>) -> String {
+        format!("normalizing `{:?}`", goal)
+    }
+}
+
 impl<'tcx> QueryDescription<'tcx> for queries::is_copy_raw<'tcx> {
     fn describe(_tcx: TyCtxt, env: ty::ParamEnvAnd<'tcx, Ty<'tcx>>) -> String {
         format!("computing whether `{}` is `Copy`", env.value)

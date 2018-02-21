@@ -17,6 +17,7 @@
 
 pub mod dropck_outlives;
 pub mod normalize;
+pub mod normalize_erasing_regions;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct NoSolution;

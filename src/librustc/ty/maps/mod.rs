@@ -375,6 +375,11 @@ define_maps! { <'tcx>
         &'tcx Canonical<ParamEnvAnd<'tcx, ty::ProjectionTy<'tcx>>>
     ) -> Result<Rc<Canonical<QueryResult<'tcx, NormalizationResult<'tcx>>>>, NoSolution>,
 
+    /// Do not call this query directly: invoke `normalize_erasing_regions` instead.
+    [] fn normalize_ty_after_erasing_regions: normalize_ty_node(
+        ParamEnvAnd<'tcx, Ty<'tcx>>
+    ) -> Ty<'tcx>,
+
     /// Do not call this query directly: invoke `infcx.at().dropck_outlives()` instead.
     [] fn dropck_outlives: normalize_ty_node(
         &'tcx Canonical<ParamEnvAnd<'tcx, Ty<'tcx>>>
@@ -527,6 +532,7 @@ fn output_filenames_node<'tcx>(_: CrateNum) -> DepConstructor<'tcx> {
 fn vtable_methods_node<'tcx>(trait_ref: ty::PolyTraitRef<'tcx>) -> DepConstructor<'tcx> {
     DepConstructor::VtableMethods{ trait_ref }
 }
+
 fn normalize_ty_node<'tcx, T>(_: T) -> DepConstructor<'tcx> {
     DepConstructor::NormalizeTy
 }
