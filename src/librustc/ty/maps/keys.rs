@@ -170,3 +170,13 @@ impl<'tcx> Key for &'tcx Canonical<ParamEnvAnd<'tcx, ty::ProjectionTy<'tcx>>> {
         DUMMY_SP
     }
 }
+
+impl<'tcx> Key for &'tcx Canonical<ParamEnvAnd<'tcx, Ty<'tcx>>> {
+    fn map_crate(&self) -> CrateNum {
+        LOCAL_CRATE
+    }
+
+    fn default_span(&self, _tcx: TyCtxt) -> Span {
+        DUMMY_SP
+    }
+}

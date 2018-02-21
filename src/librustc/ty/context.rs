@@ -35,6 +35,7 @@ use ty::subst::{Kind, Substs};
 use ty::ReprOptions;
 use ty::Instance;
 use traits;
+use traits::query::dropck_outlives::CanonicalTyGoal;
 use traits::query::normalize::CanonicalProjectionGoal;
 use ty::{self, Ty, TypeAndMut};
 use ty::{TyS, TypeVariants, Slice};
@@ -107,6 +108,7 @@ pub struct GlobalArenas<'tcx> {
     /// miri allocations
     const_allocs: TypedArena<interpret::Allocation>,
 
+    canonical_ty_goal_arena: TypedArena<CanonicalTyGoal<'tcx>>,
     canonical_projection_goal_arena: TypedArena<CanonicalProjectionGoal<'tcx>>,
 }
 
@@ -122,6 +124,7 @@ impl<'tcx> GlobalArenas<'tcx> {
             tables: TypedArena::new(),
             const_allocs: TypedArena::new(),
             canonical_projection_goal_arena: TypedArena::new(),
+            canonical_ty_goal_arena: TypedArena::new(),
         }
     }
 }
@@ -892,6 +895,11 @@ pub struct GlobalCtxt<'tcx> {
 
     output_filenames: Arc<OutputFilenames>,
 
+    /// HashSet used to canonicalize interned canonical types for the
+    /// `dropck_outlives` query. Each new unique instance is allocated
+    /// in an arena for use as a query key.
+    canonical_ty_goal_set: RefCell<FxHashSet<Interned<'tcx, CanonicalTyGoal<'tcx>>>>,
+
     /// HashSet used to canonicalize interned canonical projection
     /// goals. Each new unique instance is allocated in an arena for
     /// use as a query key.
@@ -1213,6 +1221,7 @@ impl<'a, 'gcx, 'tcx> TyCtxt<'a, 'gcx, 'tcx> {
             on_disk_query_result_cache,
             types: common_types,
             canonical_projection_goal_set: RefCell::new(FxHashSet()),
+            canonical_ty_goal_set: RefCell::new(FxHashSet()),
             trait_map,
             export_map: resolutions.export_map.into_iter().map(|(k, v)| {
                 (k, Rc::new(v))
@@ -1750,6 +1759,26 @@ impl<'tcx: 'lcx, 'lcx> Borrow<[Kind<'lcx>]> for Interned<'tcx, Substs<'tcx>> {
 impl<'tcx> Borrow<RegionKind> for Interned<'tcx, RegionKind> {
     fn borrow<'a>(&'a self) -> &'a RegionKind {
         &self.0
+    }
+}
+
+impl<'tcx> Borrow<CanonicalTyGoal<'tcx>> for Interned<'tcx, CanonicalTyGoal<'tcx>> {
+    fn borrow<'a>(&'a self) -> &'a CanonicalTyGoal<'tcx> {
+        &self.0
+    }
+}
+
+impl<'tcx> PartialEq for Interned<'tcx, CanonicalTyGoal<'tcx>> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl<'tcx> Eq for Interned<'tcx, CanonicalTyGoal<'tcx>> { }
+
+impl<'tcx> Hash for Interned<'tcx, CanonicalTyGoal<'tcx>> {
+    fn hash<H: Hasher>(&self, s: &mut H) {
+        self.0.hash(s)
     }
 }
 
@@ -2453,6 +2482,20 @@ where
     /// Otherwise, move into the global arena and return resulting
     /// reference.
     fn intern_into(self, gcx: TyCtxt<'_, 'gcx, '_>) -> &'gcx Self;
+}
+
+impl<'gcx> CanonicalIntern<'gcx> for CanonicalTyGoal<'gcx> {
+    fn arena(gcx: TyCtxt<'_, 'gcx, '_>) -> &'gcx TypedArena<Self> {
+        &gcx.global_arenas.canonical_ty_goal_arena
+    }
+
+    fn set<'cx>(gcx: TyCtxt<'cx, 'gcx, '_>) -> &'cx RefCell<FxHashSet<Interned<'gcx, Self>>> {
+        &gcx.canonical_ty_goal_set
+    }
+
+    fn intern_into(self, gcx: TyCtxt<'_, 'gcx, '_>) -> &'gcx Self {
+        intern_into_impl(self, gcx)
+    }
 }
 
 impl<'gcx> CanonicalIntern<'gcx> for CanonicalProjectionGoal<'gcx> {

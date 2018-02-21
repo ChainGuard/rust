@@ -15,6 +15,7 @@
 //! The providers for the queries defined here can be found in
 //! `librustc_traits`.
 
+pub mod dropck_outlives;
 pub mod normalize;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]

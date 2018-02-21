@@ -57,6 +57,12 @@ impl<'tcx> QueryDescription<'tcx> for queries::normalize_projection_ty<'tcx> {
     }
 }
 
+impl<'tcx> QueryDescription<'tcx> for queries::dropck_outlives<'tcx> {
+    fn describe(_tcx: TyCtxt, goal: &'tcx Canonical<ParamEnvAnd<'tcx, Ty<'tcx>>>) -> String {
+        format!("computing dropck types for `{:?}`", goal)
+    }
+}
+
 impl<'tcx> QueryDescription<'tcx> for queries::is_copy_raw<'tcx> {
     fn describe(_tcx: TyCtxt, env: ty::ParamEnvAnd<'tcx, Ty<'tcx>>) -> String {
         format!("computing whether `{}` is `Copy`", env.value)

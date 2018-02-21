@@ -818,12 +818,6 @@ impl_stable_hash_for!(struct ty::Destructor {
     did
 });
 
-impl_stable_hash_for!(struct ty::DtorckConstraint<'tcx> {
-    outlives,
-    dtorck_types
-});
-
-
 impl<'gcx> HashStable<StableHashingContext<'gcx>> for ty::CrateVariancesMap {
     fn hash_stable<W: StableHasherResult>(&self,
                                           hcx: &mut StableHashingContext<'gcx>,
