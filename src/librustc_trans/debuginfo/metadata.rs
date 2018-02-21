@@ -353,7 +353,10 @@ fn subroutine_type_metadata<'a, 'tcx>(cx: &CodegenCx<'a, 'tcx>,
                                       span: Span)
                                       -> MetadataCreationResult
 {
-    let signature = cx.tcx.normalize_erasing_late_bound_regions(ty::ParamEnv::reveal_all(), &signature);
+    let signature = cx.tcx.normalize_erasing_late_bound_regions(
+        ty::ParamEnv::reveal_all(),
+        &signature,
+    );
 
     let mut signature_metadata: Vec<DIType> = Vec::with_capacity(signature.inputs().len() + 1);
 
