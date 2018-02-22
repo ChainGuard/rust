@@ -5,7 +5,6 @@ use rustc::hir::def_id::DefId;
 use rustc::hir::map::definitions::DefPathData;
 use rustc::middle::const_val::ConstVal;
 use rustc::mir;
-use rustc::traits::Reveal;
 use rustc::ty::layout::{self, Size, Align, HasDataLayout, LayoutOf, TyLayout};
 use rustc::ty::subst::{Subst, Substs, Kind};
 use rustc::ty::{self, Ty, TyCtxt};
@@ -312,10 +311,8 @@ impl<'a, 'tcx, M: Machine<'tcx>> EvalContext<'a, 'tcx, M> {
     pub fn monomorphize(&self, ty: Ty<'tcx>, substs: &'tcx Substs<'tcx>) -> Ty<'tcx> {
         // miri doesn't care about lifetimes, and will choke on some crazy ones
         // let's simply get rid of them
-        let without_lifetimes = self.tcx.erase_regions(&ty);
-        let substituted = without_lifetimes.subst(self.tcx, substs);
-        let substituted = self.tcx.fully_normalize_monormophic_ty(&substituted);
-        substituted
+        let substituted = ty.subst(self.tcx, substs);
+        self.tcx.normalize_erasing_regions(ty::ParamEnv::reveal_all(), substituted)
     }
 
     /// Return the size and aligment of the value at the given type.
@@ -1664,5 +1661,5 @@ pub fn resolve_drop_in_place<'a, 'tcx>(
 ) -> ty::Instance<'tcx> {
     let def_id = tcx.require_lang_item(::rustc::middle::lang_items::DropInPlaceFnLangItem);
     let substs = tcx.intern_substs(&[Kind::from(ty)]);
-    ty::Instance::resolve(tcx, ty::ParamEnv::empty(Reveal::All), def_id, substs).unwrap()
+    ty::Instance::resolve(tcx, ty::ParamEnv::reveal_all(), def_id, substs).unwrap()
 }
